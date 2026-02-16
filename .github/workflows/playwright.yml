@@ -1,64 +1,100 @@
-name: Playwright Tests
+name: Flexible Test Runner
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
+    inputs:
+      website:
+        description: 'Website URL to test'
+        required: true
+        default: 'https://webtestingcourse.dequecloud.com'
+      test_type:
+        description: 'Type of tests to run'
+        required: true
+        type: choice
+        options:
+          - basic
+          - shopping
+          - forms
+          - all
 
 jobs:
-  test-deque:
+  test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    
     - uses: actions/setup-node@v4
       with:
         node-version: '20'
+    
     - run: npm ci
+    
     - run: npx playwright install --with-deps
-    - name: Test Deque site
+    
+    - name: Run Selected Tests
       env:
-        TEST_URL: https://webtestingcourse.dequecloud.com
-      run: npx playwright test
+        TEST_URL: ${{ github.event.inputs.website || 'https://webtestingcourse.dequecloud.com' }}
+      run: |
+        if [ "${{ github.event.inputs.test_type }}" == "basic" ]; then
+          echo "Running basic tests..."
+          npx playwright test tests/basic-tests.spec.js
+        elif [ "${{ github.event.inputs.test_type }}" == "shopping" ]; then
+          echo "Running shopping tests..."
+          npx playwright test tests/shopping-tests.spec.js
+        elif [ "${{ github.event.inputs.test_type }}" == "forms" ]; then
+          echo "Running form tests..."
+          npx playwright test tests/form-tests.spec.js
+        else
+          echo "Running all tests..."
+          npx playwright test
+        fi
+    
     - uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: deque-report
+        name: test-report-${{ github.event.inputs.test_type || 'auto' }}
         path: playwright-report/
+        if-no-files-found: ignore
+```
 
-  test-google:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    - run: npm ci
-    - run: npx playwright install --with-deps
-    - name: Test Google
-      env:
-        TEST_URL: https://www.google.com
-      run: npx playwright test
-    - uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: google-report
-        path: playwright-report/
+5. Scroll down and click **"Commit changes"**
+6. Add commit message: "Add input fields to workflow"
+7. Click **"Commit changes"** again
 
-  test-github:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-    - run: npm ci
-    - run: npx playwright install --with-deps
-    - name: Test GitHub
-      env:
-        TEST_URL: https://github.com
-      run: npx playwright test
-    - uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: github-report
-        path: playwright-report/
+---
+
+## **Step 2: Now You'll See the Input Fields**
+
+After committing, go to Actions:
+
+1. Go to: `https://github.com/Limbo203-ai/workflows/actions`
+2. Click **"Flexible Test Runner"** on the left sidebar
+3. Click **"Run workflow"** dropdown button (top right)
+4. **NOW you'll see:**
+   - 📝 **Text box:** "Website URL to test"
+   - 📋 **Dropdown:** "Type of tests to run" (basic/shopping/forms/all)
+5. Fill them in:
+   - URL: `https://amazon.com`
+   - Test type: `shopping`
+6. Click **"Run workflow"**
+
+---
+
+## **Visual Guide:**
+
+**Before update:**
+```
+[Run workflow ▼]
+  Branch: main
+  [Run workflow]
+```
+
+**After update:**
+```
+[Run workflow ▼]
+  Branch: main
+  Website URL to test: [https://webtestingcourse.dequecloud.com]  ← Input box
+  Type of tests to run: [basic ▼]  ← Dropdown (basic/shopping/forms/all)
+  [Run workflow]
