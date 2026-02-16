@@ -1,0 +1,53 @@
+name: Flexible Test Runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      website:
+        description: 'Website URL to test'
+        required: true
+        default: 'https://webtestingcourse.dequecloud.com'
+      test_type:
+        description: 'Type of tests to run'
+        required: true
+        type: choice
+        options:
+          - basic
+          - shopping
+          - forms
+          - all
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - run: npm ci
+    - run: npx playwright install --with-deps
+    
+    - name: Run Basic Tests
+      if: ${{ github.event.inputs.test_type == 'basic' || github.event.inputs.test_type == 'all' }}
+      env:
+        TEST_URL: ${{ github.event.inputs.website }}
+      run: npx playwright test tests/basic-tests.spec.js
+    
+    - name: Run Shopping Tests
+      if: ${{ github.event.inputs.test_type == 'shopping' || github.event.inputs.test_type == 'all' }}
+      env:
+        TEST_URL: ${{ github.event.inputs.website }}
+      run: npx playwright test tests/shopping-tests.spec.js
+    
+    - name: Run Form Tests
+      if: ${{ github.event.inputs.test_type == 'forms' || github.event.inputs.test_type == 'all' }}
+      env:
+        TEST_URL: ${{ github.event.inputs.website }}
+      run: npx playwright test tests/form-tests.spec.js
+    
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-report
+        path: playwright-report/
