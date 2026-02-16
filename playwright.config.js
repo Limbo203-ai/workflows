@@ -8,7 +8,8 @@ export default defineConfig({
   reporter: 'html',
   
   use: {
-    baseURL: 'https://webtestingcourse.dequecloud.com',
+    // Use environment variable or default
+    baseURL: process.env.TEST_URL || 'https://webtestingcourse.dequecloud.com',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     ignoreHTTPSErrors: true,
