@@ -6,7 +6,7 @@ on:
       website:
         description: 'Website URL to test'
         required: true
-        default: 'https://the-internet.herokuapp.com'
+        default: 'https://the-internet.herokuapp.com/dynamic_loading'
       test_type:
         description: 'Type of tests to run'
         required: true
